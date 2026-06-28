@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>מוקד 119 – סימולטור חקירות סייבר</title>
+<style>
+:root {
+  --bg-deep:    #0A0E1A;
+  --bg-panel:   #0F1628;
+  --bg-card:    #141C35;
+  --text-primary:  #C8D8FF;
+  --text-secondary:#7890BB;
+  --accent-green:  #00FF66;
+  --accent-red:    #FF3366;
+  --accent-blue:   #3A7BFF;
+  --border-dim:    #1E2D4F;
+  --border-green:  rgba(0,255,102,0.2);
+  --mono: 'Courier New', Courier, monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow-x:hidden}
+input,textarea,button{font-family:inherit}
+
+/* ── SCROLLBAR ─────────────────────────────────── */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg-deep)}
+::-webkit-scrollbar-thumb{background:#2A3A5A;border-radius:3px}
+
+/* ── SCREEN CONTAINERS ─────────────────────────── */
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex}
+
+/* ══════════════════════════════════════════════════
+   OPENING SCREEN
+══════════════════════════════════════════════════ */
+#scr-open{
+  flex-direction:column;align-items:center;justify-content:center;padding:2rem;
+  background:radial-gradient(ellipse at 50% 40%,#0D1A3A 0%,var(--bg-deep) 65%);
+}
+.logo-wrap{text-align:center;margin-bottom:2.5rem}
+.logo-num{
+  font-size:5.5rem;font-weight:900;color:var(--accent-green);
+  font-family:var(--mono);letter-spacing:-0.03em;
+  text-shadow:0 0 40px rgba(0,255,102,0.4);line-height:1;
+}
+.logo-sub{
+  font-size:0.95rem;color:var(--text-secondary);letter-spacing:0.35em;
+  text-transform:uppercase;margin-top:0.4rem;
+}
+.open-card{
+  background:var(--bg-panel);border:1px solid var(--border-dim);border-radius:14px;
+  padding:2.5rem;width:100%;max-width:440px;box-shadow:0 0 60px rgba(0,255,102,0.05);
+}
+.field-label{
+  display:block;font-size:0.72rem;color:var(--text-secondary);
+  letter-spacing:0.18em;text-transform:uppercase;margin-bottom:0.45rem;
+}
+.row{display:flex;gap:0.5rem;margin-bottom:1.5rem}
+.txt-input{
+  flex:1;background:var(--bg-card);border:1px solid var(--border-dim);border-radius:7px;
+  color:var(--text-primary);padding:0.7rem 1rem;font-size:1rem;outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.txt-input:focus{border-color:var(--accent-green);box-shadow:0 0 0 2px rgba(0,255,102,0.15)}
+.btn-convert{
+  background:var(--bg-card);border:1px solid var(--border-dim);border-radius:7px;
+  color:var(--text-secondary);padding:0.7rem 1rem;cursor:pointer;font-size:0.82rem;
+  white-space:nowrap;transition:all 0.2s;
+}
+.btn-convert:hover{border-color:var(--accent-blue);color:var(--text-primary)}
+.gender-row{display:flex;gap:0.75rem;margin-bottom:2rem}
+.gender-btn{
+  flex:1;background:var(--bg-card);border:2px solid var(--border-dim);border-radius:9px;
+  color:var(--text-secondary);padding:0.85rem;cursor:pointer;font-size:1rem;transition:all 0.2s;
+}
+.gender-btn.active{border-color:var(--accent-green);color:var(--accent-green);background:rgba(0,255,102,0.07)}
+.btn-start{
+  width:100%;background:var(--accent-green);border:none;border-radius:9px;
+  color:#0A0E1A;padding:1rem;font-size:1.05rem;font-weight:700;cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-start:disabled{background:#1A2540;color:var(--text-secondary);cursor:not-allowed;box-shadow:none}
+.btn-start:not(:disabled):hover{background:#00FF99;box-shadow:0 0 22px rgba(0,255,102,0.45)}
+
+/* ══════════════════════════════════════════════════
+   INVESTIGATION SCREEN
+══════════════════════════════════════════════════ */
+#scr-inv{flex-direction:column;height:100vh;overflow:hidden}
+/* TOPBAR */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg-panel);border-bottom:1px solid var(--border-dim);
+  padding:0.55rem 1.4rem;flex-shrink:0;gap:1rem;
+}
+.topbar-brand{font-family:var(--mono);color:var(--accent-green);font-size:1.1rem;font-weight:700}
+.topbar-meta{display:flex;gap:1.8rem;align-items:center}
+.topbar-clock{font-family:var(--mono);color:var(--accent-green);font-size:0.95rem;min-width:72px}
+.topbar-label{font-size:0.82rem;color:var(--text-secondary)}
+.topbar-label b{color:var(--text-primary);font-weight:600}
+/* BODY */
+.inv-body{display:flex;flex:1;overflow:hidden}
+/* CHAT */
+.chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.chat-msgs{flex:1;overflow-y:auto;padding:1.4rem;display:flex;flex-direction:column;gap:0.9rem}
+/* MESSAGES */
+.msg{
+  max-width:68%;padding:0.7rem 1rem;border-radius:10px;
+  font-size:0.92rem;line-height:1.55;animation:fadeUp 0.2s ease;
+}
+.msg-sender{font-size:0.68rem;color:var(--text-secondary);margin-bottom:0.3rem}
+.msg.citizen{
+  align-self:flex-start;background:var(--bg-card);
+  border:1px solid var(--border-dim);border-radius:10px 10px 10px 2px;
+}
+.msg.inv-msg{
+  align-self:flex-end;background:#142A4A;
+  border:1px solid #1E4070;border-radius:10px 10px 2px 10px;
+}
+.msg.system{
+  align-self:center;max-width:80%;background:#1A1208;
+  border:1px solid #4A3000;color:#FFB340;font-size:0.82rem;
+  border-radius:7px;padding:0.5rem 1rem;text-align:center;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* TYPING */
+.typing-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--text-secondary);margin:0 2px}
+.typing-dot:nth-child(1){animation:blink 1.2s 0.0s infinite}
+.typing-dot:nth-child(2){animation:blink 1.2s 0.2s infinite}
+.typing-dot:nth-child(3){animation:blink 1.2s 0.4s infinite}
+@keyframes blink{0%,100%{opacity:0.25}50%{opacity:1}}
+/* CHAT INPUT */
+.chat-input-area{
+  padding:0.9rem 1.4rem;background:var(--bg-panel);border-top:1px solid var(--border-dim);
+  display:flex;gap:0.65rem;align-items:center;flex-shrink:0;
+}
+.chat-input{
+  flex:1;background:var(--bg-card);border:1px solid var(--border-dim);border-radius:7px;
+  color:var(--text-primary);padding:0.65rem 1rem;font-size:0.92rem;outline:none;
+  transition:border-color 0.2s;
+}
+.chat-input:focus{border-color:var(--accent-green)}
+.btn-send{
+  background:var(--accent-green);border:none;border-radius:7px;color:#0A0E1A;
+  padding:0.65rem 1.3rem;font-size:0.88rem;font-weight:700;cursor:pointer;transition:all 0.2s;
+  white-space:nowrap;
+}
+.btn-send:hover{background:#00FF99}
+.btn-verdict{
+  background:transparent;border:1.5px solid var(--accent-red);border-radius:7px;
+  color:var(--accent-red);padding:0.65rem 1.1rem;font-size:0.88rem;font-weight:700;
+  cursor:pointer;transition:all 0.2s;white-space:nowrap;
+}
+.btn-verdict:hover{background:rgba(255,51,102,0.1)}
+
+/* SIDEBAR */
+.sidebar{
+  width:270px;flex-shrink:0;background:var(--bg-panel);border-right:1px solid var(--border-dim);
+  display:flex;flex-direction:column;overflow-y:auto;padding:0.9rem;gap:0.9rem;
+}
+.sb-card{background:var(--bg-card);border:1px solid var(--border-dim);border-radius:9px;padding:0.9rem}
+.sb-title{
+  font-size:0.68rem;color:var(--text-secondary);letter-spacing:0.18em;
+  text-transform:uppercase;margin-bottom:0.7rem;padding-bottom:0.5rem;
+  border-bottom:1px solid var(--border-dim);
+}
+.citizen-name{font-size:1rem;font-weight:700;color:var(--text-primary);margin-bottom:0.25rem}
+.case-num{font-family:var(--mono);font-size:0.78rem;color:var(--accent-green)}
+/* EVIDENCE */
+.ev-list{display:flex;flex-direction:column;gap:0.55rem}
+.ev-item{display:flex;align-items:center;gap:0.6rem}
+.ev-dot{
+  width:10px;height:10px;border-radius:50%;flex-shrink:0;
+  background:#1E2D4F;border:1px solid #2E3D60;transition:all 0.4s;
+}
+.ev-dot.lit{background:var(--accent-green);border-color:var(--accent-green);box-shadow:0 0 8px var(--accent-green)}
+.ev-lbl{font-size:0.82rem;color:var(--text-secondary);transition:color 0.4s}
+.ev-item.lit .ev-lbl{color:var(--text-primary)}
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;text-align:center}
+.stat-val{font-family:var(--mono);font-size:1.4rem;color:var(--accent-green)}
+.stat-lbl{font-size:0.62rem;color:var(--text-secondary);margin-top:0.15rem}
+/* BOOK BTN */
+.btn-book{
+  width:100%;background:transparent;border:1.5px solid #2A4A7A;border-radius:7px;
+  color:var(--accent-blue);padding:0.6rem;font-size:0.82rem;cursor:pointer;transition:all 0.2s;
+}
+.btn-book:hover{background:rgba(58,123,255,0.08);border-color:var(--accent-blue)}
+
+/* ══════════════════════════════════════════════════
+   MODALS
+══════════════════════════════════════════════════ */
+.overlay{
+  display:none;position:fixed;inset:0;background:rgba(10,14,26,0.88);
+  backdrop-filter:blur(5px);z-index:900;align-items:center;justify-content:center;padding:1rem;
+}
+.overlay.open{display:flex}
+.modal{
+  background:var(--bg-panel);border:1px solid var(--border-dim);border-radius:14px;
+  padding:2rem;width:100%;max-height:88vh;overflow-y:auto;
+}
+.modal-title{font-size:1.15rem;font-weight:700;margin-bottom:1.4rem;padding-bottom:0.9rem;border-bottom:1px solid var(--border-dim)}
+/* VERDICT MODAL */
+.modal-verdict-box{max-width:540px}
+.v-btns{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.4rem}
+.v-btn{
+  padding:1.1rem;border-radius:9px;border:2px solid var(--border-dim);background:var(--bg-card);
+  color:var(--text-secondary);font-size:0.98rem;font-weight:600;cursor:pointer;transition:all 0.2s;text-align:center;line-height:1.4;
+}
+.v-btn.scam{border-color:rgba(255,51,102,0.3)}
+.v-btn.scam:hover,.v-btn.scam.sel{border-color:var(--accent-red);color:var(--accent-red);background:rgba(255,51,102,0.08)}
+.v-btn.legit{border-color:rgba(0,255,102,0.3)}
+.v-btn.legit:hover,.v-btn.legit.sel{border-color:var(--accent-green);color:var(--accent-green);background:rgba(0,255,102,0.08)}
+.reasoning-area{
+  width:100%;background:var(--bg-card);border:1px solid var(--border-dim);border-radius:7px;
+  color:var(--text-primary);padding:0.75rem 1rem;font-size:0.92rem;resize:vertical;
+  min-height:90px;outline:none;margin-bottom:0.9rem;transition:border-color 0.2s;
+}
+.reasoning-area:focus{border-color:var(--accent-blue)}
+.modal-err{
+  background:#200A12;border:1px solid var(--accent-red);border-radius:7px;
+  padding:0.7rem 1rem;color:#FF8899;font-size:0.83rem;margin-bottom:0.9rem;display:none;line-height:1.5;
+}
+.btn-submit{
+  width:100%;background:var(--accent-blue);border:none;border-radius:8px;color:#fff;
+  padding:0.9rem;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s;
+}
+.btn-submit:disabled{background:#1A2540;color:var(--text-secondary);cursor:not-allowed}
+.btn-submit:not(:disabled):hover{background:#5A9BFF}
+.btn-back-chat{
+  display:block;width:100%;margin-top:0.7rem;background:transparent;border:1px solid var(--border-dim);
+  border-radius:7px;color:var(--text-secondary);padding:0.6rem;cursor:pointer;font-size:0.85rem;transition:all 0.2s;
+}
+.btn-back-chat:hover{border-color:var(--text-secondary);color:var(--text-primary)}
+/* BOOK MODAL */
+.modal-book-box{max-width:700px}
+.book-chap-title{font-size:0.95rem;font-weight:700;color:var(--accent-green);margin-bottom:0.9rem;padding-bottom:0.4rem;border-bottom:1px solid var(--border-green)}
+.book-p{font-size:0.88rem;line-height:1.7;color:var(--text-primary);margin-bottom:0.65rem}
+.rules-list{list-style:none;display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1.5rem}
+.rule-item{
+  display:flex;gap:0.65rem;align-items:flex-start;padding:0.6rem 0.8rem;
+  background:var(--bg-card);border-radius:7px;border-right:3px solid var(--accent-green);
+  font-size:0.86rem;line-height:1.55;
+}
+.rule-n{color:var(--accent-green);font-weight:700;font-family:var(--mono);flex-shrink:0}
+.btn-close{
+  display:block;margin:0 auto;background:transparent;border:1px solid var(--border-dim);
+  border-radius:7px;color:var(--text-secondary);padding:0.6rem 2rem;cursor:pointer;
+  font-size:0.85rem;transition:all 0.2s;
+}
+.btn-close:hover{border-color:var(--text-secondary);color:var(--text-primary)}
+
+/* ══════════════════════════════════════════════════
+   RESULTS SCREEN
+══════════════════════════════════════════════════ */
+#scr-results{flex-direction:column;padding:2rem;overflow-y:auto;align-items:center}
+.results-inner{width:100%;max-width:760px;display:flex;flex-direction:column;gap:1.3rem}
+.result-banner{text-align:center;padding:1.5rem 2rem;border-radius:13px}
+.result-banner.ok{background:#011F0E;border:1px solid var(--accent-green)}
+.result-banner.fail{background:#1A0008;border:1px solid var(--accent-red)}
+.result-banner-h{font-size:1.7rem;font-weight:900;margin-bottom:0.35rem}
+.result-banner.ok .result-banner-h{color:var(--accent-green)}
+.result-banner.fail .result-banner-h{color:var(--accent-red)}
+.result-banner-sub{font-size:0.9rem;opacity:0.75}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.compare-card{background:var(--bg-panel);border:1px solid var(--border-dim);border-radius:9px;padding:1rem}
+.compare-lbl{font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.4rem}
+.compare-val{font-size:1.05rem;font-weight:700}
+.analysis-card{background:var(--bg-panel);border:1px solid var(--border-dim);border-radius:9px;padding:1.4rem}
+.analysis-h{font-size:0.85rem;font-weight:700;color:var(--accent-blue);margin-bottom:0.8rem}
+.analysis-p{font-size:0.88rem;line-height:1.7;color:var(--text-primary);margin-bottom:0.65rem}
+.ev-table{width:100%;border-collapse:collapse;margin-top:0.8rem;font-size:0.85rem}
+.ev-table th{text-align:right;padding:0.45rem 0.7rem;color:var(--text-secondary);font-size:0.72rem;letter-spacing:0.1em;border-bottom:1px solid var(--border-dim)}
+.ev-table td{padding:0.45rem 0.7rem;border-bottom:1px solid #0D1220}
+.ev-ok{color:var(--accent-green);font-weight:700}
+.ev-no{color:var(--accent-red)}
+.result-actions{display:flex;gap:1rem}
+.btn-next{
+  flex:1;background:var(--accent-green);border:none;border-radius:9px;color:#0A0E1A;
+  padding:1rem;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s;
+}
+.btn-next:hover{background:#00FF99}
+.btn-end{
+  flex:1;background:transparent;border:1.5px solid var(--border-dim);border-radius:9px;
+  color:var(--text-secondary);padding:1rem;font-size:1rem;cursor:pointer;transition:all 0.2s;
+}
+.btn-end:hover{border-color:var(--text-secondary);color:var(--text-primary)}
+
+/* ══════════════════════════════════════════════════
+   SUMMARY SCREEN
+══════════════════════════════════════════════════ */
+#scr-summary{flex-direction:column;align-items:center;justify-content:center;padding:2rem}
+.sum-card{
+  background:var(--bg-panel);border:1px solid var(--accent-green);border-radius:18px;
+  padding:3rem 2.5rem;text-align:center;max-width:480px;width:100%;
+  box-shadow:0 0 60px rgba(0,255,102,0.08);
+}
+.sum-title{font-size:2rem;font-weight:900;color:var(--accent-green);margin-bottom:0.35rem}
+.sum-sub{color:var(--text-secondary);font-size:0.88rem;margin-bottom:2rem}
+.sum-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.9rem;margin-bottom:2rem}
+.sum-stat{background:var(--bg-card);border-radius:9px;padding:1rem}
+.sum-stat-v{font-size:1.9rem;font-weight:900;color:var(--accent-green);font-family:var(--mono)}
+.sum-stat-l{font-size:0.7rem;color:var(--text-secondary);margin-top:0.2rem}
+.sum-msg{font-size:0.9rem;line-height:1.7;color:var(--text-primary);margin-bottom:2rem}
+.btn-restart{
+  background:var(--accent-green);border:none;border-radius:9px;color:#0A0E1A;
+  padding:0.9rem 3rem;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s;
+}
+.btn-restart:hover{background:#00FF99}
+
+/* ── RESPONSIVE ─── */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .compare-grid{grid-template-columns:1fr}
+  .sum-stats{grid-template-columns:1fr}
+  .result-actions{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════ OPENING ═══════ -->
+<div id="scr-open" class="screen active">
+  <div class="logo-wrap">
+    <div class="logo-num">119</div>
+    <div class="logo-sub">מוקד חקירות סייבר</div>
+  </div>
+  <div class="open-card">
+    <label class="field-label" for="inv-name">שם מלא של החוקר/ת</label>
+    <div class="row">
+      <input id="inv-name" type="text" class="txt-input" placeholder="הזן/הזיני שם מלא..." oninput="checkStart()">
+      <button class="btn-convert" onclick="convertKb()" title="המר אנגלית לעברית">עב/EN</button>
+    </div>
+    <label class="field-label">לשון פנייה</label>
+    <div class="gender-row">
+      <button class="gender-btn" id="gb-male"   onclick="pickGender('male')">זכר</button>
+      <button class="gender-btn" id="gb-female" onclick="pickGender('female')">נקבה</button>
+    </div>
+    <button class="btn-start" id="btn-start" onclick="startShift()" disabled>התחל משמרת</button>
+  </div>
+</div>
+
+<!-- ═══════ INVESTIGATION ═══════ -->
+<div id="scr-inv" class="screen">
+  <div class="topbar">
+    <div class="topbar-brand">■ מוקד 119</div>
+    <div class="topbar-meta">
+      <div class="topbar-clock" id="tb-clock">--:--:--</div>
+      <div class="topbar-label">חוקר/ת: <b id="tb-name"></b></div>
+      <div class="topbar-label">משמרת: <b id="tb-shift" style="font-family:var(--mono)"></b></div>
+    </div>
+  </div>
+  <div class="inv-body">
+    <div class="chat-wrap">
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <div class="chat-input-area">
+        <input id="chat-input" type="text" class="chat-input" placeholder="כתוב/כתבי שאלה לאזרח..."
+               onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="btn-send" onclick="sendMsg()">שלח</button>
+        <button class="btn-verdict" onclick="openVerdict()">⚖️ הנחיה סופית</button>
+      </div>
+    </div>
+    <div class="sidebar">
+      <div class="sb-card">
+        <div class="sb-title">פרטי התיק</div>
+        <div class="citizen-name" id="sb-citizen"></div>
+        <div class="case-num"    id="sb-casenum"></div>
+      </div>
+      <div class="sb-card">
+        <div class="sb-title">לוח ראיות</div>
+        <div class="ev-list">
+          <div class="ev-item" id="ev-url">
+            <div class="ev-dot"></div>
+            <div class="ev-lbl">כתובת URL / דומיין</div>
+          </div>
+          <div class="ev-item" id="ev-type">
+            <div class="ev-dot"></div>
+            <div class="ev-lbl">סוג הפנייה</div>
+          </div>
+          <div class="ev-item" id="ev-fin">
+            <div class="ev-dot"></div>
+            <div class="ev-lbl">אלמנט פיננסי</div>
+          </div>
+        </div>
+      </div>
+      <div class="sb-card">
+        <div class="sb-title">סטטיסטיקת משמרת</div>
+        <div class="stats-grid">
+          <div><div class="stat-val" id="st-total">0</div><div class="stat-lbl">תיקים</div></div>
+          <div><div class="stat-val" id="st-ok">0</div><div class="stat-lbl">הצלחות</div></div>
+          <div><div class="stat-val" id="st-pct">-</div><div class="stat-lbl">דיוק</div></div>
+        </div>
+      </div>
+      <button class="btn-book" onclick="openBook()">📖 ספר החוקר</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ VERDICT MODAL ═══════ -->
+<div class="overlay" id="ov-verdict">
+  <div class="modal modal-verdict-box">
+    <div class="modal-title">⚖️ הגשת תיק לחקירה</div>
+    <div class="v-btns">
+      <button class="v-btn scam"  onclick="pickVerdict('scam')">🚨 עוקץ<br><span style="font-size:0.8rem;font-weight:400">(זדוני)</span></button>
+      <button class="v-btn legit" onclick="pickVerdict('legit')">✅ תקין<br><span style="font-size:0.8rem;font-weight:400">(לגיטימי)</span></button>
+    </div>
+    <label class="field-label" for="reasoning">נימוק החלטה – הסתמך/הסתמכי על ספר החוקר</label>
+    <textarea id="reasoning" class="reasoning-area"
+      placeholder="הסבר/הסבירי את קביעתך תוך התייחסות לעובדות התיק וכללי הזהב..."
+      oninput="checkSubmit()"></textarea>
+    <div class="modal-err" id="modal-err"></div>
+    <button class="btn-submit" id="btn-submit" onclick="submitCase()" disabled>הגש תיק לחקירה</button>
+    <button class="btn-back-chat" onclick="closeVerdict()">← חזור לצ'אט</button>
+  </div>
+</div>
+
+<!-- ═══════ BOOK MODAL ═══════ -->
+<div class="overlay" id="ov-book">
+  <div class="modal modal-book-box">
+    <div class="modal-title">📖 ספר החוקר – מדריך שטח</div>
+    <div style="margin-bottom:1.8rem">
+      <div class="book-chap-title">פרק 1: הגורם האנושי</div>
+      <p class="book-p">בעולם הדיגיטלי המודרני, חברות מסחריות וארגונים פיננסיים משקיעים משאבים עצומים בפיתוח מערכות הגנה טכנולוגיות מורכבות. התוקפים הפיננסיים הבינו כי פריצה ישירה קשה – ולכן הם מעתיקים את זירת התקיפה אל המוח של הצרכן.</p>
+      <p class="book-p">טקטיקה זו מכונה <strong>הנדסה חברתית</strong> – שימוש במניפולציות פסיכולוגיות כדי לתמרן אזרחים תמימים לבצע פעולות פזיזות: העברת כספים, או חשיפת מידע פיננסי ופרטי רגיש.</p>
+      <p class="book-p">מתקפת הנדסה חברתית מנוהלת בארבעה שלבים:<br>
+      ① <strong>איסוף מידע</strong> – נתונים מקדימים על קהל היעד.<br>
+      ② <strong>יצירת קשר ואמון</strong> – מסווה של גורם סמכותי, חברה מוכרת, או שירות נחשק.<br>
+      ③ <strong>ביצוע המניפולציה</strong> – לחץ רגשי שמשבית את החשיבה הביקורתית.<br>
+      ④ <strong>ביצוע המשימה</strong> – השגת הכסף או המידע ברגע שהקורבן פועל מתוך דחף מבוהל.</p>
+    </div>
+    <div>
+      <div class="book-chap-title">פרק 2: 6 כללי הזהב</div>
+      <ul class="rules-list">
+        <li class="rule-item"><span class="rule-n">①</span><span><strong>פירוק לחץ זמן מלאכותי</strong> – תוקפים תמיד יציבו אולטימטום נוקשה ופג תוקף קצר. עצור, קח נשימה, סרב לפעול בלחץ.</span></li>
+        <li class="rule-item"><span class="rule-n">②</span><span><strong>הפרדת מקור מקישור – בדיקת דומיין</strong> – סיומות חשודות: .top, .net, .info. דומיין מזויף יכול להיראות אמיתי – בדוק/בדקי תמיד את כתובת ה-URL המלאה.</span></li>
+        <li class="rule-item"><span class="rule-n">③</span><span><strong>אבחון סוג הפנייה</strong> – גופים לגיטימיים יפנו תמיד בשמך המלא. "לקוח יקר" / "לקוחה יקרה" = נורה אדומה.</span></li>
+        <li class="rule-item"><span class="rule-n">④</span><span><strong>הגנת מפתחות פרטיים (OTP)</strong> – שום נציג אמיתי לא יבקש קוד SMS לעולם. אם ביקשו – זה עוקץ.</span></li>
+        <li class="rule-item"><span class="rule-n">⑤</span><span><strong>בחינת הלוגיקה הפיננסית</strong> – לא מוסרים פרטי אשראי כדי לקבל כסף – רק כדי לשלם. אם ביקשו פרטים "כדי להפקיד" – זה עוקץ.</span></li>
+        <li class="rule-item"><span class="rule-n">⑥</span><span><strong>נוהל בדיקה עצמאית</strong> – נתק את השיחה. פתח ערוץ חדש דרך האתר הרשמי בלבד. אל תחזור לאותו מספר.</span></li>
+      </ul>
+    </div>
+    <button class="btn-close" onclick="closeBook()">סגור ספר</button>
+  </div>
+</div>
+
+<!-- ═══════ RESULTS ═══════ -->
+<div id="scr-results" class="screen">
+  <div class="results-inner">
+    <div class="result-banner" id="res-banner">
+      <div class="result-banner-h" id="res-banner-h"></div>
+      <div class="result-banner-sub" id="res-banner-sub"></div>
+    </div>
+    <div class="compare-grid">
+      <div class="compare-card">
+        <div class="compare-lbl">קביעתך</div>
+        <div class="compare-val" id="res-student"></div>
+      </div>
+      <div class="compare-card">
+        <div class="compare-lbl">תשובה נכונה</div>
+        <div class="compare-val" id="res-correct"></div>
+      </div>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-h">ניתוח פדגוגי – מה קרה בתיק?</div>
+      <div class="analysis-p" id="res-analysis"></div>
+      <div class="analysis-p" id="res-flags"></div>
+      <table class="ev-table">
+        <thead><tr><th>ראייה</th><th>סטטוס</th></tr></thead>
+        <tbody id="res-ev-body"></tbody>
+      </table>
+    </div>
+    <div class="result-actions">
+      <button class="btn-next" onclick="nextCase()">המשך לתיק הבא במשמרת ←</button>
+      <button class="btn-end"  onclick="endShift()">סיכום וסיום משמרת</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ SUMMARY ═══════ -->
+<div id="scr-summary" class="screen">
+  <div class="sum-card">
+    <div class="sum-title">משמרת הושלמה!</div>
+    <div class="sum-sub" id="sum-sub"></div>
+    <div class="sum-stats">
+      <div class="sum-stat"><div class="sum-stat-v" id="sum-total">0</div><div class="sum-stat-l">תיקים שחקרת</div></div>
+      <div class="sum-stat"><div class="sum-stat-v" id="sum-ok">0</div><div class="sum-stat-l">הצלחות</div></div>
+      <div class="sum-stat"><div class="sum-stat-v" id="sum-pct">-</div><div class="sum-stat-l">דיוק</div></div>
+    </div>
+    <div class="sum-msg" id="sum-msg"></div>
+    <button class="btn-restart" onclick="restartGame()">התחל משמרת חדשה</button>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════
+   KEYBOARD CONVERTER
+══════════════════════════════════════════════════ */
+const EN2HE = {q:'/',w:"'",e:'ק',r:'ר',t:'א',y:'ט',u:'ו',i:'ן',o:'ם',p:'פ',
+  a:'ש',s:'ד',d:'ג',f:'כ',g:'ע',h:'י',j:'ח',k:'ל',l:'ך',
+  z:'ז',x:'ס',c:'ב',v:'ה',b:'נ',n:'מ',m:'צ',
+  Q:'/',W:"'",E:'ק',R:'ר',T:'א',Y:'ט',U:'ו',I:'ן',O:'ם',P:'פ',
+  A:'ש',S:'ד',D:'ג',F:'כ',G:'ע',H:'י',J:'ח',K:'ל',L:'ך',
+  Z:'ז',X:'ס',C:'ב',V:'ה',B:'נ',N:'מ',M:'צ'};
+function convertKb(){
+  const el=document.getElementById('inv-name');
+  el.value=el.value.split('').map(c=>EN2HE[c]||c).join('');
+  checkStart();
+}
+
+/* ══════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════ */
+const S={
+  name:'',gender:null,shiftId:'',
+  order:[],idx:0,
+  sc:null,
+  ev:{url:false,type:false,fin:false},
+  verdict:null,
+  history:[],
+  total:0,success:0
+};
+
+/* ══════════════════════════════════════════════════
+   SCENARIOS
+══════════════════════════════════════════════════ */
+const SCENARIOS=[
+{
+  id:1,citizenName:'מאיה כהן',emoji:'📦',isScam:true,
+  citizen:{
+    gender:'female',
+    intro:'שלום! אני מאיה. קיבלתי הודעת SMS מוזרה שאומרת שחבילה שלי עצורה במכס, ואני לא יודעת מה לעשות. תוכל/תוכלי לעזור לי?',
+    urlHint:'ההודעה כללה קישור: track-il-post.top – כתבו לי ללחוץ עליו כדי לשחרר את החבילה.',
+    typeHint:'כתוב בהודעה "לקוחה יקרה" – לא ציינו את שמי בכלל. זה מוזר, נכון?',
+    financialHint:'ביקשו לשלם 4.90 שקלים תוך שעה אחת, אחרת החבילה תוחזר לשולח.',
+    generic:[
+      'ההודעה הגיעה לפני בערך שעה, אני ממש בלחץ.',
+      'כן, ציפיתי לחבילה מחו"ל, אבל עדיין זה נראה לי מוזר.',
+      'הם כתבו שזה דחוף ממש. אני לא יודעת אם לסמוך על זה.',
+      'האמת שלא הזמנתי שום דבר ממש לאחרונה, אז אני ממש מבולבלת.'
+    ]
+  },
+  analysis:'הודעת SMS זו היא תרחיש סמישינג קלאסי. ישות זדונית התחזתה לדואר ישראל ושלחה הודעת SMS עם כתובת URL מזויפת (track-il-post.top) במקום israelpost.co.il הרשמי. ההודעה השתמשה בפנייה גנרית ("לקוחה יקרה") ויצרה לחץ זמן קשיח ("תוך שעה") כדי למנוע חשיבה ביקורתית. תשלום 4.90 ש"ח הוא פיתיון – האתר ינסה לאסוף פרטי כרטיס אשראי מלאים.',
+  flags:'דגלים אדומים בתיק: ① הדומיין track-il-post.top – סיומת .top חשודה, לא israelpost.co.il. ② פנייה גנרית: "לקוחה יקרה" – ללא שם. ③ לחץ זמן: "תוך שעה". ④ בקשת תשלום קטן (4.90 ש"ח) – פיתיון לחשיפת פרטי כרטיס.',
+  correctVerdict:'scam',
+  evLabels:['כתובת URL חשודה (track-il-post.top)','פנייה גנרית ("לקוחה יקרה")','לחץ זמן ותשלום 4.90 ש"ח']
+},
+{
+  id:2,citizenName:'מאיה לוי',emoji:'📮',isScam:false,
+  citizen:{
+    gender:'female',
+    intro:'היי, אני מאיה. קיבלתי הודעה מדואר ישראל שצריך לשלם מע"מ על חבילה שהגיעה מחו"ל. נשמע קצת מוזר – יכול/יכולה לעזור לי לבדוק?',
+    urlHint:'הקישור בהודעה הוא israelpost.co.il – הדומיין הרשמי של דואר ישראל. כך כתוב בבירור.',
+    typeHint:'ההודעה פנתה אליי בשמי המלא – מאיה לוי – ואף ציינה את מספר החבילה הספציפי.',
+    financialHint:'ביקשו 28 שקלים עבור מע"מ על חבילה בינלאומית. ההסבר מפורט ומנומק.',
+    generic:[
+      'כן, הזמנתי חבילה מחו"ל לפני כשבועיים.',
+      'ניתן לשלם גם בסניף דואר ישראל הקרוב, כך כתוב שם.',
+      'ההודעה הגיעה למייל הרשמי שלי ולא ל-SMS ממספר לא מוכר.',
+      'המייל מסודר, עם לוגו של דואר ישראל ופרטים מלאים.'
+    ]
+  },
+  analysis:'זהו תרחיש תקין לחלוטין. דואר ישראל אכן גובה מע"מ על חבילות בינלאומיות ושולח הודעות לגיטימיות. הכתובת israelpost.co.il היא הכתובת הרשמית, הסכום (28 ש"ח) מתאים לחבילה בינלאומית, הפנייה נעשתה בשם המלא עם מספר חבילה, וניתנה אפשרות תשלום חלופית בסניף.',
+  flags:'סימני תקינות: ① כתובת רשמית israelpost.co.il. ② פנייה בשם מלא + מספר חבילה ספציפי. ③ סכום ריאלי עם הסבר (מע"מ). ④ אפשרות תשלום בסניף – גוף לגיטימי מציע חלופות.',
+  correctVerdict:'legit',
+  evLabels:['כתובת URL תקינה (israelpost.co.il)','פנייה בשם מלא ומספר חבילה','תשלום מע"מ לגיטימי (28 ש"ח)']
+},
+{
+  id:3,citizenName:'דניאל אברהם',emoji:'📞',isScam:true,
+  citizen:{
+    gender:'male',
+    intro:'שלום, אני דניאל. קיבלתי שיחת טלפון ממישהו שהציג עצמו כ"מנהל אבטחה" של Bit. הוא אמר שיש בעיה בחשבון שלי. אני לא יודע מה לעשות...',
+    urlHint:'הם לא שלחו קישור, אבל ביקשו שאפתח את אפליקציית Bit בזמן שאנחנו מדברים בטלפון.',
+    typeHint:'הם אמרו "שלום דניאל" בהתחלה – ידעו את שמי. אבל לא הסבירו איך קיבלו את המספר שלי, ודיברו מהר מאוד.',
+    financialHint:'הם ביקשו ממני את קוד ה-OTP שקיבלתי ב-SMS. אמרו שזה "לאימות זהות". ובSMS עצמו כתוב "אל תמסור לאיש".',
+    generic:[
+      'הם ידעו גם את שם הבנק שלי ואת סוג הטלפון שלי – זה הרגיש אמיתי.',
+      'אמרו שיש "פעילות חשודה" בחשבון ושחייבים לפעול תוך דקות.',
+      'הם עדיין מחכים לי בטלפון – אמרו לא לנתק.',
+      'השיחה הייתה מהירה מאוד ולא הספקתי לחשוב כלל.'
+    ]
+  },
+  analysis:'זהו תרחיש וישינג (vishing) – הונאת טלפון קלאסית. התוקפים התחזו לנציגי "מנהל אבטחה" של Bit, יצרו מצב דחייה ("פעילות חשודה", "תוך דקות"), ובסופו של דבר ניסו לחלץ קוד OTP – המפתח לחשבון. ה-SMS עצמו כלל אזהרה "אל תמסור לאיש" – שמשתמשת Bit כדי למנוע בדיוק עוקץ כזה.',
+  flags:'דגלים אדומים: ① בקשת קוד OTP בטלפון – כלל זהב ④: שום נציג אמיתי לא מבקש קוד SMS. ② לחץ זמן מיידי: "פעילות חשודה", "תוך דקות". ③ ה-SMS כתב במפורש: "אל תמסור לאיש".',
+  correctVerdict:'scam',
+  evLabels:['בקשת קוד OTP בטלפון','לחץ זמן מיידי ("פעילות חשודה")','SMS עם אזהרה "אל תמסור לאיש"']
+},
+{
+  id:4,citizenName:'דניאל ברק',emoji:'🔐',isScam:false,
+  citizen:{
+    gender:'male',
+    intro:'היי, אני דניאל. ניסיתי להיכנס ל-Gmail שלי ממחשב חדש, ופתאום קיבלתי SMS עם קוד. זה נורמלי? קצת הבהלתי.',
+    urlHint:'כשניסיתי להיכנס, הכתובת בדפדפן הייתה accounts.google.com – נראה לי בסדר.',
+    typeHint:'Google שלח לי קוד ישירות ל-SMS שלי. לא מישהו ביקש ממני את הקוד – הזנתי אותו בעצמי באתר.',
+    financialHint:'לא הייתה שום בקשת תשלום ולא ביקשו שום פרט אישי. רק אמתתי את הכניסה עם הקוד.',
+    generic:[
+      'זה קרה כי מעולם לא נכנסתי מהמחשב הזה.',
+      'לאחר שהזנתי את הקוד, נכנסתי ל-Gmail בלי בעיה.',
+      'לא דיברתי עם אף אחד – הכל קרה ישירות באתר.',
+      'אני משתמש ב-2FA כבר שנתיים, זו הפעם הראשונה שהתבהלתי ממנו.'
+    ]
+  },
+  analysis:'תרחיש תקין לחלוטין. אימות דו-שלבי (2FA) הוא שכבת אבטחה סטנדרטית. כשנכנסים ממכשיר לא מוכר, Google שולח קוד SMS – המשתמש מזין אותו בעצמו באתר הרשמי. לא הייתה בקשת מידע לצד שלישי, לא נדרש תשלום, ולא הייתה תקשורת עם אדם.',
+  flags:'סימני תקינות: ① כניסה דרך accounts.google.com – דומיין רשמי. ② קוד SMS הוזן ישירות באתר, לא נמסר לאדם. ③ אין בקשת כסף. ④ אין גורם אנושי שיצר קשר.',
+  correctVerdict:'legit',
+  evLabels:['כתובת accounts.google.com','קוד הוזן באתר בלבד – לא נמסר לאיש','ללא כל בקשת תשלום']
+},
+{
+  id:5,citizenName:'נועה שמש',emoji:'🎁',isScam:true,
+  citizen:{
+    gender:'female',
+    intro:'שלום! אני נועה. קיבלתי בוואטסאפ הצעה לשובר של 500 שקלים בזארה. שלחתי לחברות שלי, ועכשיו הן שואלות אם זה אמיתי...',
+    urlHint:'הקישור בהודעה הוביל ל-zara-gift-il.net – לא לאתר הרשמי zara.com.',
+    typeHint:'ההודעה הגיעה מחברה שלי בוואטסאפ, לא ישירות מזארה. היא גם קיבלה אותה ממישהו אחר.',
+    financialHint:'ביקשו את מספר תעודת הזהות שלי "לאימות" לפני שהשובר יופעל. ביקשו גם לשתף עם 20 חברים.',
+    generic:[
+      'הכתובת כללה את שם זארה – לכן האמנתי לה בהתחלה.',
+      'החברה שלי שלחה בכוונה טובה, היא גם לא ידעה שזה הונאה.',
+      'הדף נראה מאוד מקצועי עם לוגו של זארה.',
+      'שלחתי כבר לכמה חברות – עכשיו אני מודאגת שגרמתי נזק.'
+    ]
+  },
+  analysis:'זהו עוקץ וואטסאפ ויראלי. התוקפים בנו אתר מזויף (zara-gift-il.net) עם מיתוג של זארה, ואספו מספרי תעודת זהות תחת מסווה של "שובר מתנה". הדרישה לשיתוף עם 20 חברים מיועדת להפיץ את ההונאה ויראלית. מספר ת.ז. יכול לשמש לגניבת זהות.',
+  flags:'דגלים אדומים: ① הדומיין zara-gift-il.net – לא zara.com. ② הודעה מגיעה מחברה, לא ישירות מהחברה. ③ בקשת מספר ת.ז. "לאימות" – מידע שלא נחוץ לשובר. ④ דרישת שיתוף עם 20 חברים – הפצה ויראלית מכוונת.',
+  correctVerdict:'scam',
+  evLabels:['דומיין מזויף (zara-gift-il.net)','בקשת מספר ת.ז. "לאימות"','דרישת שיתוף ויראלי – 20 חברים']
+},
+{
+  id:6,citizenName:'נועה גל',emoji:'📱',isScam:false,
+  citizen:{
+    gender:'female',
+    intro:'שלום, אני נועה. סרקתי קוד QR בחנות Fox כדי להצטרף למועדון הלקוחות שלהם. ביקשו כמה פרטים. זה בסדר?',
+    urlHint:'לאחר הסריקה הגעתי לאתר fox-fashion.co.il – ובדפדפן ראיתי מנעול HTTPS ירוק.',
+    typeHint:'הם ביקשו רק שם פרטי ומייל. לאחר הרישום פנו אליי בשמי בדף האישור.',
+    financialHint:'אין כל בקשת תשלום. מועדון לקוחות חינמי לחלוטין עם הצעת הנחה ראשונה.',
+    generic:[
+      'הסריקה הייתה בתוך החנות, על שלט רשמי ליד הקופה.',
+      'הנציגה בחנות אמרה שזה הנוהל הרגיל של Fox.',
+      'קיבלתי מייל אישור מיד לאחר ההרשמה מ-noreply@fox-fashion.co.il.',
+      'לא ביקשו ממני לשתף עם חברים או לעשות שום דבר נוסף.'
+    ]
+  },
+  analysis:'תרחיש תקין. הצטרפות למועדון לקוחות דרך QR בחנות רשמית היא נוהל לגיטימי. הכתובת fox-fashion.co.il עם HTTPS, איסוף מינימלי של פרטים (שם ומייל בלבד), הסריקה בתוך החנות הפיזית, ואין בקשת תשלום – כל אלו הם סימני תקינות.',
+  flags:'סימני תקינות: ① fox-fashion.co.il + HTTPS (מנעול). ② איסוף מינימלי – שם ומייל בלבד. ③ סריקה בתוך החנות הרשמית. ④ ללא תשלום ואין דרישת שיתוף.',
+  correctVerdict:'legit',
+  evLabels:['fox-fashion.co.il + HTTPS','איסוף מינימלי (שם ומייל בלבד)','ללא תשלום ושיתוף']
+},
+{
+  id:7,citizenName:'רועי מזרחי',emoji:'💳',isScam:true,
+  citizen:{
+    gender:'male',
+    intro:'שלום, אני רועי. פרסמתי מוצר ביד2 ומישהו מציע לקנות ממני, אבל הוא מבקש כמה דברים שנשמעים לי מוזרים...',
+    urlHint:'הוא שלח קישור לאתר payment-secure-il.com – אמר שזה "כדי לקבל את התשלום בבטחה".',
+    typeHint:'הוא מציע לי 150 שקל יותר מהמחיר שביקשתי, ואמר שיש לו עמלת שליח שאחזיר לו חלק ממנה.',
+    financialHint:'הוא ביקש ממני את מספר ה-CVV של הכרטיס שלי "כדי להפקיד את הכסף". זה לא הגיוני לי.',
+    generic:[
+      'הוא ממש נחמד בוואטסאפ, לא נראה לי כמו נוכל בכלל.',
+      'הוא עקף את מערכת ההודעות של יד2 ויצר איתי קשר בוואטסאפ.',
+      'הוא אמר שהתשלום יגיע תוך 24 שעות לכרטיס שלי.',
+      'הצעתי לו להשתמש ב-PayBox או Bit – הוא אמר שזה לא מתאים לו.'
+    ]
+  },
+  analysis:'עוקץ מוכר ביד2. הנוכל מציע מחיר גבוה מהמבוקש (יוצר רצון טוב), שולח לאתר מזויף (payment-secure-il.com), ומבקש CVV תחת מסווה של "הפקדה". כלל זהב ⑤: לא מוסרים פרטי אשראי כדי לקבל כסף – רק כדי לשלם. הנוכל ינסה לנצל את הפרטים לרכישות לא מורשות.',
+  flags:'דגלים אדומים: ① payment-secure-il.com – אתר שאינו שירות סליקה מוכר. ② בקשת CVV "כדי להפקיד" – לוגיקה הפוכה. ③ מחיר גבוה מהמבוקש – טקטיקת יצירת רצון טוב. ④ שיחה מחוץ ליד2 (וואטסאפ) + סירוב לדרכי תשלום מוכרות.',
+  correctVerdict:'scam',
+  evLabels:['אתר payment-secure-il.com','בקשת CVV "כדי להפקיד"','מחיר גבוה + תקשורת מחוץ ליד2']
+},
+{
+  id:8,citizenName:'רועי בן-דוד',emoji:'🏦',isScam:false,
+  citizen:{
+    gender:'male',
+    intro:'שלום, אני רועי. פתחתי את האפליקציה הבנקאית שלי וקיבלתי התראה שיש עדכון חדש זמין. הפנו אותי לחנות. זה בטוח?',
+    urlHint:'ההורדה הפנתה ישירות ל-play.google.com – חנות Google Play הרשמית. לא לאתר חיצוני.',
+    typeHint:'ההתראה הגיעה מתוך האפליקציה הבנקאית עצמה, לא ב-SMS מספר לא מוכר.',
+    financialHint:'לא ביקשו שום פרט אישי, שום סיסמה, ושום מידע פיננסי. רק אישרתי הורדה בחנות.',
+    generic:[
+      'לא דיברתי עם אף אחד – הכל קרה בתוך האפליקציה.',
+      'לאחר העדכון האפליקציה עובדת כרגיל, ויש ממשק משתמש חדש.',
+      'הבנק שלח לי גם מייל על העדכון, שוחרר בשבוע שעבר.',
+      'לא ביקשו ממני לאמת כלום מחוץ לחנות הרשמית.'
+    ]
+  },
+  analysis:'תרחיש תקין. עדכון אפליקציה שמגיע מתוך האפליקציה הרשמית ומפנה ל-play.google.com הוא נוהל סטנדרטי ובטוח. לא נדרש שום מידע אישי – רק אישור הורדה בחנות הרשמית.',
+  flags:'סימני תקינות: ① ההתראה הגיעה מתוך האפליקציה עצמה. ② הפנייה ל-play.google.com – חנות רשמית. ③ ללא בקשת מידע אישי או פיננסי. ④ אין גורם אנושי שיצר קשר מחוץ לאפליקציה.',
+  correctVerdict:'legit',
+  evLabels:['הפנייה ל-play.google.com','ללא בקשת מידע אישי/פיננסי','עדכון מתוך האפליקציה הרשמית']
+}
+];
+
+/* ══════════════════════════════════════════════════
+   GENDER HELPERS
+══════════════════════════════════════════════════ */
+function gI(m,f){return S.gender==='female'?f:m}   // investigator gender
+function gC(sc,m,f){return sc.citizen.gender==='female'?f:m}  // citizen gender (not directly used for address)
+
+function invTitle(){return gI('חוקר','חוקרת')}
+// How citizen addresses the investigator
+function toInv(m,f){return gI(m,f)}
+
+/* ══════════════════════════════════════════════════
+   SCREENS
+══════════════════════════════════════════════════ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.remove('active');
+    s.style.display='none';
+  });
+  const el=document.getElementById(id);
+  el.classList.add('active');
+  // choose flex or block
+  el.style.display=(id==='scr-results')?'flex':'flex';
+}
+
+/* ══════════════════════════════════════════════════
+   OPENING LOGIC
+══════════════════════════════════════════════════ */
+function pickGender(g){
+  S.gender=g;
+  document.getElementById('gb-male').classList.toggle('active',g==='male');
+  document.getElementById('gb-female').classList.toggle('active',g==='female');
+  checkStart();
+}
+function checkStart(){
+  const nm=document.getElementById('inv-name').value.trim();
+  document.getElementById('btn-start').disabled=!(nm.length>=2&&S.gender);
+}
+
+function startShift(){
+  const nm=document.getElementById('inv-name').value.trim();
+  if(!nm||!S.gender)return;
+  S.name=nm;
+  S.shiftId=makeShiftId();
+  loadStats();
+  S.order=shuffle([...Array(SCENARIOS.length).keys()]);
+  S.idx=0;
+  showScreen('scr-inv');
+  loadScenario();
+  startClock();
+}
+
+function makeShiftId(){
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
+}
+
+/* ══════════════════════════════════════════════════
+   CLOCK
+══════════════════════════════════════════════════ */
+let _clk=null;
+function startClock(){
+  if(_clk)clearInterval(_clk);
+  const tick=()=>{
+    const d=new Date(),p=n=>String(n).padStart(2,'0');
+    document.getElementById('tb-clock').textContent=`${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  };
+  tick();_clk=setInterval(tick,1000);
+}
+
+/* ══════════════════════════════════════════════════
+   SCENARIO LOADING
+══════════════════════════════════════════════════ */
+function loadScenario(){
+  const sc=SCENARIOS[S.order[S.idx]];
+  S.sc=sc;
+  S.ev={url:false,type:false,fin:false};
+  S.verdict=null;
+  S.history=[];
+
+  document.getElementById('tb-name').textContent=`${invTitle()} ${S.name}`;
+  document.getElementById('tb-shift').textContent=S.shiftId;
+  document.getElementById('sb-citizen').textContent=`${sc.citizenName} ${sc.emoji}`;
+  document.getElementById('sb-casenum').textContent=`תיק #${randCase()}`;
+  resetEvDots();
+  updateStats();
+  document.getElementById('chat-msgs').innerHTML='';
+  document.getElementById('chat-input').value='';
+
+  // opening message from citizen
+  setTimeout(()=>addMsg('citizen',sc.citizen.intro,sc.citizenName),400);
+}
+
+function randCase(){
+  return `${rnd(1000,9999)}-${rnd(100,999)}`;
+}
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+/* ══════════════════════════════════════════════════
+   EVIDENCE
+══════════════════════════════════════════════════ */
+function resetEvDots(){
+  ['ev-url','ev-type','ev-fin'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.querySelector('.ev-dot').classList.remove('lit');
+    el.classList.remove('lit');
+  });
+}
+function lightEv(type){
+  if(S.ev[type])return;
+  S.ev[type]=true;
+  const map={url:'ev-url',type:'ev-type',fin:'ev-fin'};
+  const el=document.getElementById(map[type]);
+  el.querySelector('.ev-dot').classList.add('lit');
+  el.classList.add('lit');
+}
+
+/* ══════════════════════════════════════════════════
+   CHAT ENGINE
+══════════════════════════════════════════════════ */
+function addMsg(role,text,sender){
+  const wrap=document.getElementById('chat-msgs');
+  const div=document.createElement('div');
+  div.className=`msg ${role==='investigator'?'inv-msg':role}`;
+  if(sender&&role!=='system'){
+    const s=document.createElement('div');
+    s.className='msg-sender';s.textContent=sender;div.appendChild(s);
+  }
+  const t=document.createElement('div');t.textContent=text;div.appendChild(t);
+  wrap.appendChild(div);
+  wrap.scrollTop=wrap.scrollHeight;
+  if(role!=='system')S.history.push({role,text});
+}
+
+function showTyping(){
+  const wrap=document.getElementById('chat-msgs');
+  const div=document.createElement('div');
+  div.className='msg citizen';div.id='typing';
+  div.innerHTML=`<div class="msg-sender">${S.sc.citizenName}</div><div><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`;
+  wrap.appendChild(div);wrap.scrollTop=wrap.scrollHeight;
+}
+function hideTyping(){const el=document.getElementById('typing');if(el)el.remove();}
+
+function sendMsg(){
+  const inp=document.getElementById('chat-input');
+  const txt=inp.value.trim();if(!txt)return;
+  inp.value='';
+  addMsg('investigator',txt,`${invTitle()} ${S.name}`);
+  setTimeout(()=>{
+    showTyping();
+    setTimeout(()=>{
+      hideTyping();
+      const r=genResponse(txt);
+      addMsg('citizen',r.text,S.sc.citizenName);
+      if(r.ev)r.ev.forEach(e=>lightEv(e));
+    },700+rnd(0,600));
+  },150);
+}
+
+/* ── RESPONSE GENERATOR ── */
+const KW_URL=['url','קישור','כתובת','אתר','דומיין','http','www','.com','.top','.net','.il','.info','לינק','ספיצי','אינטרנט'];
+const KW_TYPE=['שם','פניה','פנייה','פנו','הודעה','כתבו','sms','מסר','וואטסאפ','מייל','מכתב','לקוחה','לקוח','ישירות','נשלח','הגיע','אמר','אמרו','מי שלח','מאיפה'];
+const KW_FIN=['כסף','תשלום','שקל','אשראי','cvv','חשבון','העברה','עמלה','מחיר','קוד','otp','אימות','זהות','ת.ז','פרטים','כרטיס','ביקשו','למסור','לשלם','להפקיד'];
+const KW_RELEVANT=['מה','איך','מי','מדוע','למה','מתי','האם','האתר','נשלח','ביקשו','אמרו','חשוד','מוזר','בטוח','לגיטימי','שאלה','ספר','הסבר','בדיקה','חבילה','דואר','בנק','bit','גוגל','google','fox','יד2','זארה','zara'];
+
+function genResponse(msg){
+  const m=msg.toLowerCase();
+
+  // URL / domain
+  if(KW_URL.some(k=>m.includes(k)))
+    return{text:S.sc.citizen.urlHint,ev:['url']};
+
+  // Type of contact
+  if(KW_TYPE.some(k=>m.includes(k)))
+    return{text:S.sc.citizen.typeHint,ev:['type']};
+
+  // Financial
+  if(KW_FIN.some(k=>m.includes(k)))
+    return{text:S.sc.citizen.financialHint,ev:['fin']};
+
+  // Off-topic / gibberish
+  const relevant=KW_RELEVANT.some(k=>m.includes(k));
+  if(!relevant&&m.replace(/\s/g,'').length<5){
+    return{text:`אני ממש לא ${toInv('מבין','מבינה')} מה זה קשור, ${toInv('תגיד','תגידי')} לי – ${toInv('אתה יכול','את יכולה')} לעזור לי להבין אם ההודעה שקיבלתי היא בסדר?`};
+  }
+
+  // Generic answer
+  const ci=S.history.filter(h=>h.role==='citizen').length;
+  const pool=S.sc.citizen.generic;
+  return{text:pool[ci%pool.length]};
+}
+
+/* ══════════════════════════════════════════════════
+   VERDICT MODAL
+══════════════════════════════════════════════════ */
+function openVerdict(){
+  S.verdict=null;
+  document.querySelectorAll('.v-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('reasoning').value='';
+  document.getElementById('btn-submit').disabled=true;
+  document.getElementById('modal-err').style.display='none';
+  document.getElementById('ov-verdict').classList.add('open');
+}
+function closeVerdict(){document.getElementById('ov-verdict').classList.remove('open');}
+function pickVerdict(v){
+  S.verdict=v;
+  document.querySelectorAll('.v-btn').forEach(b=>b.classList.remove('sel'));
+  document.querySelector(`.v-btn.${v}`).classList.add('sel');
+  checkSubmit();
+}
+function checkSubmit(){
+  const r=document.getElementById('reasoning').value.trim();
+  document.getElementById('btn-submit').disabled=!(S.verdict&&r.length>=10);
+}
+
+/* ── REASONING VALIDATION ── */
+const GOLD_KW=[
+  'לחץ זמן','אולטימטום','פג תוקף','דחוף','תוך שעה','מהר','מיד',
+  'דומיין','url','כתובת','.top','.net','.info','קישור מזויף','אתר מזויף',
+  'פנייה','לקוח יקר','לקוחה יקרה','שם מלא','פנייה גנרית','ללא שם',
+  'otp','קוד sms','קוד חד פעמי','אימות','לא למסור',
+  'cvv','פרטי אשראי','כרטיס','לא מוסרים','לקבל כסף','להפקיד',
+  'בדיקה עצמאית','אתר רשמי','ערוץ חדש',
+  'ספר החוקר','כלל זהב','הנדסה חברתית','סמישינג','וישינג','פישינג','מניפולציה'
+];
+
+function validateReasoning(txt){
+  const l=txt.toLowerCase();
+  return GOLD_KW.some(k=>l.includes(k.toLowerCase()));
+}
+
+function submitCase(){
+  const r=document.getElementById('reasoning').value.trim();
+  if(!validateReasoning(r)){
+    const err=document.getElementById('modal-err');
+    const dear=gI('חוקר יקר','חוקרת יקרה');
+    const explain=gI('הסבר','הסבירי');
+    err.textContent=`${dear}, הנימוק זקוק לדיוק. אנא ${explain} יותר לעומק בהסתמך על ספר החוקר והעובדות בתיק (למשל הדומיין, לחץ הזמן, סוג הפנייה, או בקשת קוד OTP) לפני סגירת התיק.`;
+    err.style.display='block';
+    return;
+  }
+  document.getElementById('modal-err').style.display='none';
+  closeVerdict();
+  showResults();
+}
+
+/* ══════════════════════════════════════════════════
+   RESULTS
+══════════════════════════════════════════════════ */
+const VTEXT={scam:'🚨 עוקץ (זדוני)',legit:'✅ תקין (לגיטימי)'};
+const VCOL ={scam:'var(--accent-red)',legit:'var(--accent-green)'};
+
+function showResults(){
+  const sc=S.sc;
+  const ok=S.verdict===sc.correctVerdict;
+  S.total++;if(ok)S.success++;
+  saveStats();updateStats();
+
+  // Banner
+  const banner=document.getElementById('res-banner');
+  banner.className=`result-banner ${ok?'ok':'fail'}`;
+  document.getElementById('res-banner-h').textContent=ok?'התיק פוענח בהצלחה!':'שגגה בחקירה';
+  document.getElementById('res-banner-sub').textContent=ok
+    ?`קביעה מדויקת, ${invTitle()} ${S.name}. עבודה מצוינת.`
+    :`קביעה שגויה, ${invTitle()} ${S.name}. הנה הניתוח המלא.`;
+
+  // Comparison
+  const sv=document.getElementById('res-student');
+  sv.textContent=VTEXT[S.verdict];sv.style.color=VCOL[S.verdict];
+  const cv=document.getElementById('res-correct');
+  cv.textContent=VTEXT[sc.correctVerdict];cv.style.color=VCOL[sc.correctVerdict];
+
+  // Analysis
+  document.getElementById('res-analysis').textContent=sc.analysis;
+  document.getElementById('res-flags').textContent=sc.flags;
+
+  // Evidence table
+  const evKeys=['url','type','fin'];
+  const tbody=document.getElementById('res-ev-body');
+  tbody.innerHTML='';
+  sc.evLabels.forEach((lbl,i)=>{
+    const revealed=S.ev[evKeys[i]];
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${lbl}</td><td class="${revealed?'ev-ok':'ev-no'}">${revealed?'✓ נחשף':'✗ לא נחשף'}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  showScreen('scr-results');
+  window.scrollTo(0,0);
+}
+
+/* ══════════════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════════════ */
+function nextCase(){
+  S.idx++;
+  if(S.idx>=SCENARIOS.length){S.idx=0;S.order=shuffle([...Array(SCENARIOS.length).keys()]);}
+  showScreen('scr-inv');
+  loadScenario();
+}
+
+function endShift(){
+  const tot=S.total,ok=S.success;
+  const pct=tot>0?Math.round((ok/tot)*100):0;
+  document.getElementById('sum-total').textContent=tot;
+  document.getElementById('sum-ok').textContent=ok;
+  document.getElementById('sum-pct').textContent=tot>0?`${pct}%`:'-';
+  document.getElementById('sum-sub').textContent=`${invTitle()} ${S.name} – משמרת ${S.shiftId}`;
+
+  let msg;
+  if(pct>=90) msg=`ביצועים יוצאי דופן! ${gI('שמרת','שמרת')} על ערנות גבוהה לאורך כל המשמרת. הכישורים האנליטיים שלך מרשימים – המשך/המשיכי לחדד אותם.`;
+  else if(pct>=70) msg=`עבודה טובה! זיהית את רוב התיקים נכון. כדאי לחזור על פרק 2 בספר החוקר – במיוחד כללי הזהב על בדיקת דומיינים ולחץ זמן.`;
+  else if(pct>=50) msg=`ממוצע סביר, אך יש מקום לשיפור. עיין/עיני שוב ב-6 כללי הזהב. תרגל/תרגלי זיהוי דומיינים חשודים ופניות גנריות.`;
+  else             msg=`המשמרת הייתה מאתגרת – וזה בסדר גמור. חזור/חזרי על פרק 1 ועל כללי הזהב. בכל ניסיון ${gI('אתה מתחדד','את מתחדדת')} יותר.`;
+  document.getElementById('sum-msg').textContent=msg;
+
+  showScreen('scr-summary');
+}
+
+function restartGame(){
+  S.total=0;S.success=0;
+  clearStats();
+  S.order=shuffle([...Array(SCENARIOS.length).keys()]);
+  S.idx=0;
+  showScreen('scr-inv');
+  loadScenario();
+}
+
+/* ══════════════════════════════════════════════════
+   BOOK MODAL
+══════════════════════════════════════════════════ */
+function openBook(){document.getElementById('ov-book').classList.add('open');}
+function closeBook(){document.getElementById('ov-book').classList.remove('open');}
+
+/* ══════════════════════════════════════════════════
+   STATS – localStorage
+══════════════════════════════════════════════════ */
+function loadStats(){
+  try{const d=JSON.parse(localStorage.getItem('moked119'));if(d){S.total=d.t||0;S.success=d.s||0;}}catch(e){}
+}
+function saveStats(){
+  try{localStorage.setItem('moked119',JSON.stringify({t:S.total,s:S.success}));}catch(e){}
+}
+function clearStats(){
+  try{localStorage.removeItem('moked119');}catch(e){}
+}
+function updateStats(){
+  const tot=S.total,ok=S.success;
+  document.getElementById('st-total').textContent=tot;
+  document.getElementById('st-ok').textContent=ok;
+  document.getElementById('st-pct').textContent=tot>0?`${Math.round((ok/tot)*100)}%`:'-';
+}
+
+/* ══════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{
+  showScreen('scr-open');
+});
+</script>
+</body>
+</html>
